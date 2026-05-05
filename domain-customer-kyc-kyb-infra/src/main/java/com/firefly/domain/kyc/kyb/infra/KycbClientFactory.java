@@ -5,6 +5,7 @@ import com.firefly.core.kycb.sdk.api.CorporateDocumentsApi;
 import com.firefly.core.kycb.sdk.api.KybVerificationApi;
 import com.firefly.core.kycb.sdk.api.KycVerificationApi;
 import com.firefly.core.kycb.sdk.api.KycVerificationDocumentsApi;
+import com.firefly.core.kycb.sdk.api.RiskAssessmentApi;
 import com.firefly.core.kycb.sdk.api.UboManagementApi;
 import com.firefly.core.kycb.sdk.api.VerificationDocumentsApi;
 import com.firefly.core.kycb.sdk.invoker.ApiClient;
@@ -79,5 +80,13 @@ public class KycbClientFactory {
     @Bean
     public VerificationDocumentsApi verificationDocumentsApi() {
         return new VerificationDocumentsApi(apiClient);
+    }
+
+    /**
+     * API for party risk-assessment lifecycle (used by KYC verification flows).
+     */
+    @Bean
+    public RiskAssessmentApi riskAssessmentApi() {
+        return new RiskAssessmentApi(apiClient);
     }
 }

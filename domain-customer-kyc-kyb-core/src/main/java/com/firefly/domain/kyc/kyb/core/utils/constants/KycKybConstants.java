@@ -66,10 +66,11 @@ public final class KycKybConstants {
     public static final String EVENT_KYB_VERIFICATION_REQUESTED = "kyb-verification-requested";
     public static final String EVENT_KYB_VERIFICATION_COMPLETED = "kyb-verification-completed";
 
-    // --- Compensation ---
-    public static final String COMPENSATE_DELETE_VERIFICATION = "compensate-delete-verification";
-    public static final String COMPENSATE_DELETE_KYB_VERIFICATION = "compensate-delete-kyb-verification";
-    public static final String COMPENSATE_DELETE_DOCUMENT = "compensate-delete-document";
+    // --- Compensation method names (must match the Java method names exactly;
+    //     SagaRegistry resolves them via strict equality, no kebab-to-camel conversion) ---
+    public static final String COMPENSATE_DELETE_VERIFICATION = "compensateDeleteVerification";
+    public static final String COMPENSATE_DELETE_KYB_VERIFICATION = "compensateDeleteKybVerification";
+    public static final String COMPENSATE_DELETE_DOCUMENT = "compensateDeleteDocument";
 
     // --- Due diligence ---
     public static final String LEVEL_ENHANCED = "ENHANCED";

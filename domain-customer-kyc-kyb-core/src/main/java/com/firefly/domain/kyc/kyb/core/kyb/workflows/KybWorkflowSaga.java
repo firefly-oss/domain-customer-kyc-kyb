@@ -220,6 +220,7 @@ public class KybWorkflowSaga {
     @SagaStep(
             id = STEP_EVALUATE_RESULT,
             dependsOn = STEP_REQUEST_VERIFICATION,
+            compensate = COMPENSATE_EVALUATE_RESULT,
             timeoutMs = 30000
     )
     @StepEvent(type = EVENT_VERIFICATION_COMPLETED)
@@ -298,5 +299,20 @@ public class KybWorkflowSaga {
         if (vId == null || partyId == null) return Mono.empty();
         log.info("Compensating requestVerification: deleting verificationId={}", vId);
         return kybVerificationApi.deleteKybVerification(partyId, vId, UUID.randomUUID().toString());
+    }
+
+    /**
+     * No-op compensation for the terminal {@code evaluateResult} step.
+     *
+     * <p>The case-status update done by {@code evaluateResult} is the saga's final
+     * action; there is nothing meaningful to roll back. This method exists solely
+     * so that {@code @SagaStep.compensate} is non-empty and the orchestration
+     * validator does not emit a benign "no compensation defined" warning at
+     * startup. Earlier steps still have their own compensations triggered by the
+     * STRICT_SEQUENTIAL policy if a downstream failure ever occurs.</p>
+     */
+    public Mono<Void> compensateEvaluateResult(String caseStatus, ExecutionContext ctx) {
+        log.debug("Compensation no-op for evaluateResult: terminal step, caseStatus={}", caseStatus);
+        return Mono.empty();
     }
 }

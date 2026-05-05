@@ -24,6 +24,7 @@ public final class KybWorkflowConstants {
     public static final String COMPENSATE_DELETE_DOCUMENTS     = "deleteDocuments";
     public static final String COMPENSATE_REMOVE_UBOS          = "removeUbos";
     public static final String COMPENSATE_CANCEL_VERIFICATION  = "cancelVerification";
+    public static final String COMPENSATE_EVALUATE_RESULT      = "compensateEvaluateResult";
 
     // ── SagaContext variable keys ─────────────────────────────────────────────
     public static final String CTX_CASE_ID           = "caseId";
