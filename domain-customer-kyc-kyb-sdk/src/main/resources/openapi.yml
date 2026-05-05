@@ -1,0 +1,651 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:18080
+  description: Generated server url
+tags:
+- name: KYB
+  description: APIs for managing KYB compliance cases for legal entities
+- name: KYC
+  description: CQ queries and registration for kyc
+paths:
+  /api/v1/kyc/cases:
+    post:
+      tags:
+      - KYC
+      summary: Start KYC
+      description: Open a KYC case with required due diligence level
+      operationId: openCase
+      parameters:
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/kyc/cases/{caseId}/verify:
+    post:
+      tags:
+      - KYC
+      summary: Verify KYC
+      description: Approve KYC at level and set expiration
+      operationId: verify
+      parameters:
+      - name: caseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/kyc/cases/{caseId}/renew:
+    post:
+      tags:
+      - KYC
+      summary: Renew KYC
+      description: Renew verification with new level/expiry
+      operationId: renew
+      parameters:
+      - name: caseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/kyc/cases/{caseId}/pep-adverse-media:
+    post:
+      tags:
+      - KYC
+      summary: Record PEP/Adverse Media
+      description: Record PEP/adverse media status affecting decision
+      operationId: recordPepAdverseMedia
+      parameters:
+      - name: caseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/kyc/cases/{caseId}/fail:
+    post:
+      tags:
+      - KYC
+      summary: Fail KYC
+      description: Close as rejected (fraud/inconsistency)
+      operationId: fail
+      parameters:
+      - name: caseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/kyc/cases/{caseId}/expire:
+    post:
+      tags:
+      - KYC
+      summary: Expire KYC
+      description: Mark verification expired by time
+      operationId: expire
+      parameters:
+      - name: caseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/kyc/cases/{caseId}/evidence:
+    post:
+      tags:
+      - KYC
+      summary: Attach Evidence
+      description: Attach identity/POA/selfie documents (fingerprint ref)
+      operationId: attachEvidence
+      parameters:
+      - name: caseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttachEvidenceCommand"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/kyc/cases/{caseId}/docs-complete:
+    post:
+      tags:
+      - KYC
+      summary: Mark Documents Complete
+      description: Mark dossier complete for review
+      operationId: markDocsComplete
+      parameters:
+      - name: caseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/kyb/cases/{caseId}/verify:
+    post:
+      tags:
+      - KYB
+      summary: Request KYB Verification
+      description: Trigger external KYB verification for the case. Requires all documents
+        and UBOs to be submitted.
+      operationId: requestVerification
+      parameters:
+      - name: caseId
+        in: path
+        description: Unique identifier of the KYB case
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: partyId
+        in: query
+        description: Party ID owning the case
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Verification requested successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KybResultResponse"
+        "400":
+          description: Verification prerequisites not met
+        "404":
+          description: KYB case not found
+  /api/v1/kyb/cases/{caseId}/ubos:
+    post:
+      tags:
+      - KYB
+      summary: Register UBOs
+      description: Register Ultimate Beneficial Owners for a KYB case.
+      operationId: registerUbos
+      parameters:
+      - name: caseId
+        in: path
+        description: Unique identifier of the KYB case
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterUbosRequest"
+        required: true
+      responses:
+        "200":
+          description: UBOs registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionResult"
+        "400":
+          description: Invalid UBO data
+        "404":
+          description: KYB case not found
+  /api/v1/kyb/cases/{caseId}/corporate-documents:
+    post:
+      tags:
+      - KYB
+      summary: Submit Corporate Documents
+      description: Upload statutory and corporate documentation for a KYB case.
+      operationId: submitCorporateDocuments
+      parameters:
+      - name: caseId
+        in: path
+        description: Unique identifier of the KYB case
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitCorporateDocumentsRequest"
+        required: true
+      responses:
+        "200":
+          description: Documents submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionResult"
+        "400":
+          description: Invalid document data
+        "404":
+          description: KYB case not found
+  /api/v1/kyb/cases:
+    post:
+      tags:
+      - KYB
+      summary: Create KYB Case
+      description: Create a new KYB compliance case for a legal entity (persona jurídica).
+      operationId: createCase
+      parameters:
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateKybCaseRequest"
+        required: true
+      responses:
+        "201":
+          description: KYB case created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KybCaseResponse"
+        "400":
+          description: Invalid request data
+  /api/v1/kyb/cases/{caseId}/result:
+    get:
+      tags:
+      - KYB
+      summary: Get KYB Result
+      description: Retrieve the final KYB verification result for a case.
+      operationId: getResult
+      parameters:
+      - name: caseId
+        in: path
+        description: Unique identifier of the KYB case
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: partyId
+        in: query
+        description: Party ID owning the case
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: verificationId
+        in: query
+        description: KYB verification ID returned after the verification step
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: KYB result retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KybResultResponse"
+        "404":
+          description: Verification result not found
+  /api/v1/kyb/cases/{caseId}:
+    get:
+      tags:
+      - KYB
+      summary: Get KYB Case
+      description: Retrieve the current state of a KYB compliance case by its identifier.
+      operationId: getCase
+      parameters:
+      - name: caseId
+        in: path
+        description: Unique identifier of the KYB case
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: KYB case retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KybCaseResponse"
+        "404":
+          description: KYB case not found
+components:
+  schemas:
+    AttachEvidenceCommand:
+      type: object
+      properties:
+        caseId:
+          type: string
+          format: uuid
+        documentType:
+          type: string
+        documentName:
+          type: string
+        documentContent:
+          type: string
+        mimeType:
+          type: string
+        documentSize:
+          type: integer
+          format: int64
+        fingerprint:
+          type: string
+        description:
+          type: string
+    KybResultResponse:
+      type: object
+      properties:
+        verificationId:
+          type: string
+          format: uuid
+        partyId:
+          type: string
+          format: uuid
+        verificationStatus:
+          type: string
+        riskScore:
+          type: integer
+          format: int32
+        riskLevel:
+          type: string
+        verificationDate:
+          type: string
+          format: date-time
+        nextReviewDate:
+          type: string
+          format: date-time
+        mercantileRegistryVerified:
+          type: boolean
+        deedOfIncorporationVerified:
+          type: boolean
+        businessStructureVerified:
+          type: boolean
+        uboVerified:
+          type: boolean
+        taxIdVerified:
+          type: boolean
+        operatingLicenseVerified:
+          type: boolean
+        verificationNotes:
+          type: string
+    RegisterUbosRequest:
+      required:
+      - partyId
+      - ubos
+      type: object
+      properties:
+        partyId:
+          type: string
+          format: uuid
+        ubos:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/UboData"
+    UboData:
+      type: object
+      properties:
+        naturalPersonId:
+          type: string
+          format: uuid
+        ownershipPercentage:
+          type: number
+        ownershipType:
+          type: string
+        controlStructure:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        verificationMethod:
+          type: string
+        titularidadRealDocument:
+          type: string
+    SubmissionResult:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+    DocumentData:
+      type: object
+      properties:
+        documentType:
+          type: string
+        documentReference:
+          type: string
+        documentSystemId:
+          type: string
+        issueDate:
+          type: string
+          format: date-time
+        expiryDate:
+          type: string
+          format: date-time
+        notaryName:
+          type: string
+        notaryLocation:
+          type: string
+        commercialRegistry:
+          type: string
+        registryEntry:
+          type: string
+    SubmitCorporateDocumentsRequest:
+      required:
+      - documents
+      - partyId
+      type: object
+      properties:
+        partyId:
+          type: string
+          format: uuid
+        documents:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentData"
+    CreateKybCaseRequest:
+      required:
+      - businessName
+      - partyId
+      - registrationNumber
+      - tenantId
+      type: object
+      properties:
+        partyId:
+          type: string
+          format: uuid
+        businessName:
+          minLength: 1
+          type: string
+        registrationNumber:
+          minLength: 1
+          type: string
+        tenantId:
+          type: string
+          format: uuid
+    KybCaseResponse:
+      type: object
+      properties:
+        caseId:
+          type: string
+          format: uuid
+        partyId:
+          type: string
+          format: uuid
+        caseType:
+          type: string
+        caseStatus:
+          type: string
+        casePriority:
+          type: string
+        caseReference:
+          type: string
+        caseSummary:
+          type: string
+        assignedTo:
+          type: string
+        dueDate:
+          type: string
+          format: date-time
+        resolutionDate:
+          type: string
+          format: date-time
+        resolutionNotes:
+          type: string
