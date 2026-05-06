@@ -43,7 +43,7 @@ server:
 api-configuration:
   core-platform:
     kycb-mgmt:
-      base-path: http://localhost:8092
+      base-path: ${ENDPOINT_CORE_PLATFORM_KYCB_MGMT:http://localhost:8092}
       timeout: 10s
 
 springdoc:
