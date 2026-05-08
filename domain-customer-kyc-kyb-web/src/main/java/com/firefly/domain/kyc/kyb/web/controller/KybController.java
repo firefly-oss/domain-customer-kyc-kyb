@@ -6,6 +6,7 @@ import com.firefly.domain.kyc.kyb.core.kyb.commands.CreateKybCaseCommand;
 import com.firefly.domain.kyc.kyb.core.kyb.commands.RegisterUbosCommand;
 import com.firefly.domain.kyc.kyb.core.kyb.commands.RequestKybVerificationCommand;
 import com.firefly.domain.kyc.kyb.core.kyb.commands.SubmissionResult;
+import com.firefly.domain.kyc.kyb.core.kyb.commands.SubmitAuthorizedSignersCommand;
 import com.firefly.domain.kyc.kyb.core.kyb.commands.SubmitCorporateDocumentsCommand;
 import com.firefly.domain.kyc.kyb.core.kyb.queries.GetKybCaseQuery;
 import com.firefly.domain.kyc.kyb.core.kyb.queries.GetKybResultQuery;
@@ -13,6 +14,7 @@ import com.firefly.domain.kyc.kyb.interfaces.dtos.CreateKybCaseRequest;
 import com.firefly.domain.kyc.kyb.interfaces.dtos.KybCaseResponse;
 import com.firefly.domain.kyc.kyb.interfaces.dtos.KybResultResponse;
 import com.firefly.domain.kyc.kyb.interfaces.dtos.RegisterUbosRequest;
+import com.firefly.domain.kyc.kyb.interfaces.dtos.SubmitAuthorizedSignersRequest;
 import com.firefly.domain.kyc.kyb.interfaces.dtos.SubmitCorporateDocumentsRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -143,6 +145,32 @@ public class KybController {
                 .caseId(caseId)
                 .partyId(request.getPartyId())
                 .ubos(request.getUbos())
+                .build();
+        return commandBus.<SubmissionResult>send(cmd)
+                .map(ResponseEntity::ok);
+    }
+
+    @Operation(summary = "Submit Authorized Signers",
+               description = "Submit authorized signers (Powers of Attorney) for a KYB case (BE-5c).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Authorized signers submitted successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = SubmissionResult.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid signer data", content = @Content),
+            @ApiResponse(responseCode = "404", description = "KYB case not found", content = @Content)
+    })
+    @PostMapping(value = "/cases/{caseId}/authorized-signers",
+                 consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<SubmissionResult>> submitAuthorizedSigners(
+            @Parameter(description = "Unique identifier of the KYB case", required = true)
+            @PathVariable UUID caseId,
+            @Valid @RequestBody SubmitAuthorizedSignersRequest request) {
+        log.info("Submitting authorized signers: caseId={}, partyId={}, count={}",
+                caseId, request.getPartyId(), request.getSigners().size());
+        SubmitAuthorizedSignersCommand cmd = SubmitAuthorizedSignersCommand.builder()
+                .caseId(caseId)
+                .partyId(request.getPartyId())
+                .signers(request.getSigners())
                 .build();
         return commandBus.<SubmissionResult>send(cmd)
                 .map(ResponseEntity::ok);

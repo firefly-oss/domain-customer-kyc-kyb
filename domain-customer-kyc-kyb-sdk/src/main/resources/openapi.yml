@@ -354,6 +354,45 @@ paths:
           description: Invalid document data
         "404":
           description: KYB case not found
+  /api/v1/kyb/cases/{caseId}/authorized-signers:
+    post:
+      tags:
+      - KYB
+      summary: Submit Authorized Signers
+      description: Submit authorized signers (Powers of Attorney) for a KYB case (BE-5c).
+      operationId: submitAuthorizedSigners
+      parameters:
+      - name: caseId
+        in: path
+        description: Unique identifier of the KYB case
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitAuthorizedSignersRequest"
+        required: true
+      responses:
+        "200":
+          description: Authorized signers submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionResult"
+        "400":
+          description: Invalid signer data
+        "404":
+          description: KYB case not found
   /api/v1/kyb/cases:
     post:
       tags:
@@ -542,6 +581,7 @@ components:
         ownershipPercentage:
           type: number
         ownershipType:
+          pattern: ^(DIRECT|INDIRECT)$
           type: string
         controlStructure:
           type: string
@@ -555,6 +595,9 @@ components:
           type: string
         titularidadRealDocument:
           type: string
+        email:
+          type: string
+          format: email
     SubmissionResult:
       type: object
       properties:
@@ -600,6 +643,45 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DocumentData"
+    SignerData:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        documentType:
+          type: string
+        documentNumber:
+          type: string
+        attorneyId:
+          type: string
+          format: uuid
+        role:
+          type: string
+        powerDocumentReference:
+          type: string
+        email:
+          type: string
+          format: email
+        signingAuthorized:
+          type: boolean
+        isPep:
+          type: boolean
+    SubmitAuthorizedSignersRequest:
+      required:
+      - partyId
+      - signers
+      type: object
+      properties:
+        partyId:
+          type: string
+          format: uuid
+        signers:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/SignerData"
     CreateKybCaseRequest:
       required:
       - businessName

@@ -5,6 +5,7 @@ import com.firefly.core.kycb.sdk.api.CorporateDocumentsApi;
 import com.firefly.core.kycb.sdk.api.KybVerificationApi;
 import com.firefly.core.kycb.sdk.api.KycVerificationApi;
 import com.firefly.core.kycb.sdk.api.KycVerificationDocumentsApi;
+import com.firefly.core.kycb.sdk.api.PowersOfAttorneyApi;
 import com.firefly.core.kycb.sdk.api.RiskAssessmentApi;
 import com.firefly.core.kycb.sdk.api.UboManagementApi;
 import com.firefly.core.kycb.sdk.api.VerificationDocumentsApi;
@@ -72,6 +73,14 @@ public class KycbClientFactory {
     @Bean
     public UboManagementApi uboManagementApi() {
         return new UboManagementApi(apiClient);
+    }
+
+    /**
+     * API for Power-of-Attorney (authorized signer) management in KYB flows.
+     */
+    @Bean
+    public PowersOfAttorneyApi powersOfAttorneyApi() {
+        return new PowersOfAttorneyApi(apiClient);
     }
 
     /**
