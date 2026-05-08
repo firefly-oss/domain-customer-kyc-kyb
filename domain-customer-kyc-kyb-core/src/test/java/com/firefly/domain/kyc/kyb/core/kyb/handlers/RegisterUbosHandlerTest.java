@@ -8,6 +8,7 @@ import com.firefly.domain.kyc.kyb.core.kyb.mappers.KybMapperImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
@@ -72,6 +73,38 @@ class RegisterUbosHandlerTest {
                 .verifyComplete();
 
         verify(uboManagementApi, times(2)).addUbo(eq(partyId), any(UboDTO.class), any());
+    }
+
+    @Test
+    void shouldPropagateEmailAndOwnershipTypeToSdkCall() {
+        UUID partyId = UUID.randomUUID();
+        UUID uboId = UUID.randomUUID();
+
+        ArgumentCaptor<UboDTO> dtoCaptor = ArgumentCaptor.forClass(UboDTO.class);
+        when(uboManagementApi.addUbo(eq(partyId), dtoCaptor.capture(), any()))
+                .thenReturn(Mono.just(new UboDTO(null, null, uboId)));
+
+        UboData ubo = UboData.builder()
+                .naturalPersonId(UUID.randomUUID())
+                .ownershipPercentage(new BigDecimal("75.00"))
+                .ownershipType("DIRECT")
+                .email("ubo.contact@example.com")
+                .build();
+
+        RegisterUbosCommand cmd = RegisterUbosCommand.builder()
+                .caseId(UUID.randomUUID())
+                .partyId(partyId)
+                .ubos(List.of(ubo))
+                .build();
+
+        StepVerifier.create(handler.doHandle(cmd))
+                .assertNext(result -> assertThat(result.ids()).containsExactly(uboId))
+                .verifyComplete();
+
+        UboDTO captured = dtoCaptor.getValue();
+        assertThat(captured.getEmail()).isEqualTo("ubo.contact@example.com");
+        assertThat(captured.getOwnershipType()).isEqualTo("DIRECT");
+        assertThat(captured.getPartyId()).isEqualTo(partyId);
     }
 
     @Test
