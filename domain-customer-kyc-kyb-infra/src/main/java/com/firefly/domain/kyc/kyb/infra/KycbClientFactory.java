@@ -12,6 +12,7 @@ import com.firefly.core.kycb.sdk.api.VerificationDocumentsApi;
 import com.firefly.core.kycb.sdk.invoker.ApiClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * Creates reactive API client beans for the core-common-kycb-mgmt downstream service.
@@ -20,10 +21,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class KycbClientFactory {
 
+    private static final int MAX_IN_MEMORY_SIZE = 20 * 1024 * 1024;
+
     private final ApiClient apiClient;
 
     public KycbClientFactory(KycbClientConfigurationProperties props) {
-        this.apiClient = new ApiClient();
+        WebClient webClient = ApiClient.buildWebClientBuilder()
+                .codecs(c -> c.defaultCodecs().maxInMemorySize(MAX_IN_MEMORY_SIZE))
+                .build();
+        this.apiClient = new ApiClient(webClient);
         this.apiClient.setBasePath(props.getBasePath());
     }
 
