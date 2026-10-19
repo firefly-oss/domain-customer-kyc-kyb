@@ -69,16 +69,10 @@
             <artifactId>core-common-customer-mgmt-sdk</artifactId>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>com.firefly</groupId>
-            <artifactId>core-common-kycb-mgmt-sdk</artifactId>
-        </dependency>
-
         <!-- core-common-kycb-mgmt SDK — version managed by firefly-bom via firefly-parent -->
         <dependency>
             <groupId>com.firefly</groupId>
             <artifactId>core-common-kycb-mgmt-sdk</artifactId>
-            <scope>compile</scope>
         </dependency>
 
         <!-- Test Dependencies -->
