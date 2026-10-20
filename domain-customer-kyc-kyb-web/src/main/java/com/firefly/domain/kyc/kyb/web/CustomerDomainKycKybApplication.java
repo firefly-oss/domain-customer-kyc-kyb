@@ -29,7 +29,7 @@ import org.springframework.web.reactive.config.EnableWebFlux;
         ),
         servers = {
                 @Server(
-                        url = "http://core.getfirefly.io/customer-domain-kyckyb",
+                        url = "https://openplatform.fireflysoftware.io/customer-domain-kyckyb",
                         description = "Development Environment"
                 ),
                 @Server(
