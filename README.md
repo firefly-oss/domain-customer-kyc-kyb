@@ -275,12 +275,12 @@ All properties are defined in `domain-customer-kyc-kyb-web/src/main/resources/ap
 | `springdoc.api-docs.enabled` | `true` | Enables OpenAPI spec generation |
 | `springdoc.api-docs.path` | `/v3/api-docs` | OpenAPI JSON path |
 | `springdoc.swagger-ui.path` | `/swagger-ui.html` | Swagger UI path |
-| `springdoc.packages-to-scan` | `com.firefly.domain.kyc.kyb.web.controller` | Controllers scanned for API docs |
+| `springdoc.packages-to-scan` | `io.fireflysoftware.domain.kyc.kyb.web.controller` | Controllers scanned for API docs |
 | `springdoc.paths-to-match` | `/api/**` | Paths included in the OpenAPI spec |
 
-> **Production profile (`pro`):** OpenAPI docs and Swagger UI are disabled. Root log level is `WARN`; `com.firefly` packages log at `INFO`.
+> **Production profile (`pro`):** OpenAPI docs and Swagger UI are disabled. Root log level is `WARN`; `io.fireflysoftware` packages log at `INFO`.
 
-> **Dev and pre profiles:** Both `com.firefly` and root loggers produce `DEBUG` and `INFO` output respectively.
+> **Dev and pre profiles:** Both `io.fireflysoftware` and root loggers produce `DEBUG` and `INFO` output respectively.
 
 ### Actuator
 

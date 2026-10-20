@@ -58,7 +58,7 @@ springdoc:
     operationsSorter: method
     docExpansion: none
     filter: true
-  packages-to-scan: com.firefly.domain.kyc.kyb.web.controller
+  packages-to-scan: io.fireflysoftware.domain.kyc.kyb.web.controller
   paths-to-match: /api/**
 
 management:
@@ -83,7 +83,7 @@ spring:
 logging:
   level:
     root: INFO
-    com.firefly: DEBUG
+    io.fireflysoftware: DEBUG
 
 ---
 spring:
@@ -93,7 +93,7 @@ spring:
 logging:
   level:
     root: INFO
-    com.firefly: DEBUG
+    io.fireflysoftware: DEBUG
 
 ---
 spring:
@@ -103,7 +103,7 @@ spring:
 logging:
   level:
     root: WARN
-    com.firefly: INFO
+    io.fireflysoftware: INFO
 springdoc:
   api-docs:
     enabled: false
