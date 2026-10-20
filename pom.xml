@@ -12,6 +12,7 @@
     </parent>
 
     <artifactId>domain-customer-kyc-kyb</artifactId>
+    <name>domain-customer-kyc-kyb</name>
     <version>26.10.3</version>
     <packaging>pom</packaging>
     <modules>
