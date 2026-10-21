@@ -72,11 +72,11 @@ public class VerifyKycSaga {
     public Mono<UUID> recordRiskAssessment(VerifyKycCommand cmd, ExecutionContext ctx) {
         RiskAssessmentDTO riskDto = new RiskAssessmentDTO()
                 .partyId(cmd.getPartyId())
-                .assessmentType(ASSESSMENT_TYPE_KYC)
+                .assessmentType("INITIAL")
                 .assessmentDate(LocalDateTime.now())
                 .riskLevel(RISK_LEVEL_LOW)
                 .riskScore(25)
-                .riskCategory(RISK_CATEGORY_STANDARD);
+                .riskCategory("CUSTOMER");
 
         return riskAssessmentApi.createRiskAssessment(
                         cmd.getPartyId(), riskDto, UUID.randomUUID().toString())

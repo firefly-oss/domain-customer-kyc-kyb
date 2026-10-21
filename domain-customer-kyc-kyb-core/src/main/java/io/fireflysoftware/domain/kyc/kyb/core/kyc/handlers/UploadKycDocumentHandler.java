@@ -51,7 +51,7 @@ public class UploadKycDocumentHandler extends CommandHandler<AttachKycEvidenceCo
                 .kycVerificationId(cmd.getCaseId())
                 .documentType(cmd.getDocumentType())
                 .documentReference(cmd.getFingerprint())
-                .verificationPurpose(PURPOSE_IDENTITY_VERIFICATION)
+                .verificationPurpose("IDENTITY")
                 .isVerified(false);
 
         return kycVerificationDocumentsApi.addVerificationDocument(

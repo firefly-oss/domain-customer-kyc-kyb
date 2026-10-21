@@ -27,6 +27,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -41,14 +43,22 @@ public class KycController {
     @Operation(summary = "Start KYC", description = "Open a KYC case with required due diligence level")
     public Mono<ResponseEntity<Object>> openCase(@RequestBody OpenKycCaseCommand command) {
         return kycService.openCase(command)
-                .map(result -> ResponseEntity.ok().build());
+                .map(result -> {
+                    Map<String, Object> body = new LinkedHashMap<>();
+                    body.put("caseId", result.resultOf("create-kyc-verification", UUID.class).orElse(null));
+                    return ResponseEntity.ok((Object) body);
+                });
     }
 
     @PostMapping("/cases/{caseId}/evidence")
     @Operation(summary = "Attach Evidence", description = "Attach identity/POA/selfie documents (fingerprint ref)")
     public Mono<ResponseEntity<Object>> attachEvidence(@PathVariable UUID caseId, @RequestBody AttachEvidenceCommand command) {
         return kycService.attachEvidence(caseId, command)
-                .map(result -> ResponseEntity.ok().build());
+                .map(result -> {
+                    Map<String, Object> body = new LinkedHashMap<>();
+                    body.put("documentId", result.resultOf("upload-document", UUID.class).orElse(null));
+                    return ResponseEntity.ok((Object) body);
+                });
     }
 
     @PostMapping("/cases/{caseId}/docs-complete")
@@ -67,7 +77,8 @@ public class KycController {
 
     @PostMapping("/cases/{caseId}/verify")
     @Operation(summary = "Verify KYC", description = "Approve KYC at level and set expiration")
-    public Mono<ResponseEntity<Object>> verify(@PathVariable UUID caseId, @RequestParam UUID partyId) {
+    public Mono<ResponseEntity<Object>> verify(@PathVariable UUID caseId,
+                                               @RequestParam(required = false) UUID partyId) {
         return kycService.verify(caseId, partyId)
                 .map(result -> ResponseEntity.ok().build());
     }

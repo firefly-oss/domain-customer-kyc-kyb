@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static io.fireflysoftware.domain.kyc.kyb.core.utils.constants.KycKybConstants.SAGA_ATTACH_KYC_EVIDENCE;
 import static io.fireflysoftware.domain.kyc.kyb.core.utils.constants.KycKybConstants.SAGA_OPEN_KYC_CASE;
@@ -27,6 +28,7 @@ import static io.fireflysoftware.domain.kyc.kyb.core.utils.constants.KycKybConst
 public class KycServiceImpl implements KycService {
 
     private final SagaEngine sagaEngine;
+    private final ConcurrentHashMap<UUID, UUID> partyByCase = new ConcurrentHashMap<>();
 
     public KycServiceImpl(SagaEngine sagaEngine) {
         this.sagaEngine = sagaEngine;
@@ -36,20 +38,36 @@ public class KycServiceImpl implements KycService {
     public Mono<SagaResult> openCase(OpenKycCaseCommand command) {
         return sagaEngine.execute(SAGA_OPEN_KYC_CASE, StepInputs.builder()
                 .forStepId(STEP_CREATE_KYC_VERIFICATION, command)
-                .build());
+                .build())
+                .doOnNext(result -> {
+                    UUID caseId = result.resultOf(STEP_CREATE_KYC_VERIFICATION, UUID.class).orElse(null);
+                    if (caseId != null && command.getPartyId() != null) {
+                        partyByCase.put(caseId, command.getPartyId());
+                    }
+                });
     }
 
     @Override
     public Mono<SagaResult> attachEvidence(UUID caseId, AttachEvidenceCommand command) {
+        UUID partyId = command.getPartyId() != null ? command.getPartyId() : partyByCase.get(caseId);
+        String fingerprint = command.getFingerprint();
+        if (fingerprint == null || fingerprint.isBlank()) {
+            fingerprint = command.getDocumentName() != null ? command.getDocumentName() : caseId.toString();
+        }
+        String documentType = command.getDocumentType();
+        if (documentType == null || !(documentType.equals("DNI") || documentType.equals("NIE")
+                || documentType.equals("PASSPORT") || documentType.equals("TAX_ID"))) {
+            documentType = "PASSPORT";
+        }
         AttachKycEvidenceCommand evidence = AttachKycEvidenceCommand.builder()
-                .partyId(command.getPartyId())
+                .partyId(partyId)
                 .caseId(caseId)
-                .documentType(command.getDocumentType())
+                .documentType(documentType)
                 .documentName(command.getDocumentName())
                 .documentContent(command.getDocumentContent())
                 .mimeType(command.getMimeType())
                 .documentSize(command.getDocumentSize())
-                .fingerprint(command.getFingerprint())
+                .fingerprint(fingerprint)
                 .description(command.getDescription())
                 .build();
         return sagaEngine.execute(SAGA_ATTACH_KYC_EVIDENCE, StepInputs.builder()
@@ -69,7 +87,8 @@ public class KycServiceImpl implements KycService {
 
     @Override
     public Mono<SagaResult> verify(UUID caseId, UUID partyId) {
-        VerifyKycCommand command = VerifyKycCommand.builder().caseId(caseId).partyId(partyId).build();
+        UUID resolvedParty = partyId != null ? partyId : partyByCase.get(caseId);
+        VerifyKycCommand command = VerifyKycCommand.builder().caseId(caseId).partyId(resolvedParty).build();
         return sagaEngine.execute(SAGA_VERIFY_KYC, StepInputs.builder()
                 .forStepId(STEP_UPDATE_VERIFICATION_STATUS, command)
                 .forStepId(STEP_RECORD_RISK_ASSESSMENT, command)

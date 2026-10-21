@@ -52,7 +52,7 @@ public class CreateKycVerificationHandler extends CommandHandler<OpenKycCaseComm
                 .partyId(cmd.getPartyId())
                 .verificationStatus(STATUS_PENDING)
                 .verificationDate(LocalDateTime.now())
-                .verificationMethod(cmd.getDueDiligenceLevel())
+                .verificationMethod("MANUAL")
                 .enhancedDueDiligence(LEVEL_ENHANCED.equals(cmd.getDueDiligenceLevel()));
 
         return kycVerificationApi.createKycVerification(
