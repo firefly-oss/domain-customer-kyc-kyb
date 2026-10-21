@@ -91,7 +91,6 @@ public final class KycKybConstants {
 
     // --- Due diligence ---
     public static final String LEVEL_ENHANCED = "ENHANCED";
-    public static final double STUB_DOCUMENT_CONFIDENCE = 0.95;
 
     // --- Verification purposes ---
     public static final String PURPOSE_IDENTITY_VERIFICATION = "IDENTITY_VERIFICATION";
