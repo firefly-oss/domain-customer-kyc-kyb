@@ -33,7 +33,7 @@ import java.util.UUID;
  *
  * <p>Implementations connect to external KYB providers such as Onfido, Jumio, or Veriff
  * to perform business verification, corporate document checks, and UBO verification.
- * A stub implementation is provided for development and testing.
+ * {@link SandboxKybProviderAdapter} supplies a deterministic sample result when no external provider is configured.
  */
 public interface KybProviderPort {
 

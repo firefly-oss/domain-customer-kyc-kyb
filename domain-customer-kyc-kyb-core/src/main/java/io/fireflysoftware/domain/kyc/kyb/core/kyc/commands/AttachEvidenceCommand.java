@@ -28,7 +28,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class AttachEvidenceCommand {
     
-    private UUID caseId;
+    private UUID partyId;
     private String documentType;
     private String documentName;
     private String documentContent;

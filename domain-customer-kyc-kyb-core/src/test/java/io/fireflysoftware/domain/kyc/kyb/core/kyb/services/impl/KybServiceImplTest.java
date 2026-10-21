@@ -19,6 +19,7 @@ package io.fireflysoftware.domain.kyc.kyb.core.kyb.services.impl;
 
 import io.fireflysoftware.domain.kyc.kyb.core.kyb.commands.AttachEvidenceCommand;
 import io.fireflysoftware.domain.kyc.kyb.core.kyb.commands.UpdateCaseStatusCommand;
+import io.fireflysoftware.domain.kyc.kyb.core.kyb.workflows.ChangeKybCaseStatusSaga;
 import io.fireflysoftware.domain.kyc.kyb.core.kyb.workflows.KybWorkflowInput;
 import org.fireflyframework.cqrs.command.CommandBus;
 import org.fireflyframework.orchestration.saga.engine.SagaEngine;
@@ -78,53 +79,34 @@ class KybServiceImplTest {
     }
 
     @Test
-    void attachEvidence_completesEmpty_notYetImplemented() {
+    void attachEvidence_executesAttachSaga() {
+        when(sagaEngine.execute(eq(SAGA_ATTACH_EVIDENCE), any(StepInputs.class)))
+                .thenReturn(Mono.just(sagaResult));
         UUID caseId = UUID.randomUUID();
         AttachEvidenceCommand command = new AttachEvidenceCommand();
         command.setDocumentType("STATUTES");
         command.setDocumentName("company_statutes.pdf");
 
         StepVerifier.create(kybService.attachEvidence(caseId, command))
+                .expectNext(sagaResult)
                 .verifyComplete();
+
+        verify(sagaEngine).execute(eq(SAGA_ATTACH_EVIDENCE), any(StepInputs.class));
     }
 
     @Test
-    void verifyKyb_completesEmpty_notYetImplemented() {
+    void statusTransitions_executeTheStatusSaga() {
+        when(sagaEngine.execute(eq(ChangeKybCaseStatusSaga.NAME), any(StepInputs.class)))
+                .thenReturn(Mono.just(sagaResult));
         UUID caseId = UUID.randomUUID();
 
-        StepVerifier.create(kybService.verifyKyb(caseId))
-                .verifyComplete();
-    }
+        StepVerifier.create(kybService.markDocsComplete(caseId)).expectNext(sagaResult).verifyComplete();
+        StepVerifier.create(kybService.verifyKyb(caseId)).expectNext(sagaResult).verifyComplete();
+        StepVerifier.create(kybService.failKyb(caseId)).expectNext(sagaResult).verifyComplete();
+        StepVerifier.create(kybService.expireKyb(caseId)).expectNext(sagaResult).verifyComplete();
+        StepVerifier.create(kybService.renewKyb(caseId)).expectNext(sagaResult).verifyComplete();
 
-    @Test
-    void markDocsComplete_completesEmpty_notYetImplemented() {
-        UUID caseId = UUID.randomUUID();
-
-        StepVerifier.create(kybService.markDocsComplete(caseId))
-                .verifyComplete();
-    }
-
-    @Test
-    void failKyb_completesEmpty_notYetImplemented() {
-        UUID caseId = UUID.randomUUID();
-
-        StepVerifier.create(kybService.failKyb(caseId))
-                .verifyComplete();
-    }
-
-    @Test
-    void expireKyb_completesEmpty_notYetImplemented() {
-        UUID caseId = UUID.randomUUID();
-
-        StepVerifier.create(kybService.expireKyb(caseId))
-                .verifyComplete();
-    }
-
-    @Test
-    void renewKyb_completesEmpty_notYetImplemented() {
-        UUID caseId = UUID.randomUUID();
-
-        StepVerifier.create(kybService.renewKyb(caseId))
-                .verifyComplete();
+        verify(sagaEngine, org.mockito.Mockito.times(5))
+                .execute(eq(ChangeKybCaseStatusSaga.NAME), any(StepInputs.class));
     }
 }

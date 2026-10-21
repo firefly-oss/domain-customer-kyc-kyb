@@ -19,6 +19,8 @@ package io.fireflysoftware.domain.kyc.kyb.core.kyb.services.impl;
 
 import io.fireflysoftware.domain.kyc.kyb.core.kyb.commands.AttachEvidenceCommand;
 import io.fireflysoftware.domain.kyc.kyb.core.kyb.services.KybService;
+import io.fireflysoftware.domain.kyc.kyb.core.kyb.commands.UpdateCaseStatusCommand;
+import io.fireflysoftware.domain.kyc.kyb.core.kyb.workflows.ChangeKybCaseStatusSaga;
 import io.fireflysoftware.domain.kyc.kyb.core.kyb.workflows.KybWorkflowInput;
 import io.fireflysoftware.domain.kyc.kyb.core.kyb.workflows.KybWorkflowConstants;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,9 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
+
+import static io.fireflysoftware.domain.kyc.kyb.core.kyb.constants.KybConstants.SAGA_ATTACH_EVIDENCE;
+import static io.fireflysoftware.domain.kyc.kyb.core.kyb.constants.KybConstants.STEP_ATTACH_DOCUMENT;
 
 /**
  * Implements the KYB domain service by delegating saga orchestration to
@@ -54,31 +59,40 @@ public class KybServiceImpl implements KybService {
 
     @Override
     public Mono<SagaResult> attachEvidence(UUID caseId, AttachEvidenceCommand command) {
-        return Mono.empty();
+        command.setCaseId(caseId);
+        return sagaEngine.execute(SAGA_ATTACH_EVIDENCE, StepInputs.builder()
+                .forStepId(STEP_ATTACH_DOCUMENT, command)
+                .build());
     }
 
     @Override
     public Mono<SagaResult> markDocsComplete(UUID caseId) {
-        return Mono.empty();
+        return changeStatus(caseId, "DOCS_COMPLETE");
     }
 
     @Override
     public Mono<SagaResult> verifyKyb(UUID caseId) {
-        return Mono.empty();
+        return changeStatus(caseId, "VERIFIED");
     }
 
     @Override
     public Mono<SagaResult> failKyb(UUID caseId) {
-        return Mono.empty();
+        return changeStatus(caseId, "REJECTED");
     }
 
     @Override
     public Mono<SagaResult> expireKyb(UUID caseId) {
-        return Mono.empty();
+        return changeStatus(caseId, "EXPIRED");
     }
 
     @Override
     public Mono<SagaResult> renewKyb(UUID caseId) {
-        return Mono.empty();
+        return changeStatus(caseId, "RENEWED");
+    }
+
+    private Mono<SagaResult> changeStatus(UUID caseId, String status) {
+        return sagaEngine.execute(ChangeKybCaseStatusSaga.NAME, StepInputs.builder()
+                .forStepId(ChangeKybCaseStatusSaga.STEP, new UpdateCaseStatusCommand(caseId, status))
+                .build());
     }
 }

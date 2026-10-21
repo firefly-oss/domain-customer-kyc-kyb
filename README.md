@@ -34,7 +34,7 @@ Developed by the Firefly Software Foundation. [dev@fireflysoftware.io](mailto:de
 
 Beneficial ownership is stored as `beneficialOwnershipDocument`. Opening a KYC or KYB case, and attaching KYC evidence, each have a compensating delete on the core. The KYB track is the primary, fully implemented flow. It orchestrates a five-step distributed saga — `createKybCase → (submitCorporateDocuments ‖ registerUbos) → requestVerification → evaluateResult` — coordinating calls to the downstream `core-common-kycb-mgmt` service via a generated SDK. Every completed saga step publishes a domain event to Kafka, enabling downstream consumers (such as `exp-onboarding` or `core-lending`) to react to compliance outcomes without coupling directly to this service.
 
-The KYC track exposes a full lifecycle API (open, attach evidence, mark docs complete, PEP/adverse-media recording, verify, fail, expire, renew) but its service implementation is a placeholder pending full development. Both tracks share a single Spring Boot application, a common infrastructure layer, and the same `KycbClientFactory` for connecting to the core platform.
+The KYC track exposes the lifecycle API (open, attach evidence, mark docs complete, PEP/adverse-media recording, verify, fail, expire, renew) and writes those transitions through the core KYC verification API. Both tracks share a single Spring Boot application, a common infrastructure layer, and the same `KycbClientFactory` for connecting to the core platform.
 
 ---
 
@@ -60,7 +60,7 @@ HTTP clients
              ▼
 ┌─────────────────────────────┐
 │  -infra  (Adapters)         │  KycbClientFactory, KybVerificationPort,
-│  core-common-kycb-mgmt SDK  │  StubKybVerificationAdapter
+│  core-common-kycb-mgmt SDK  │  SandboxKybVerificationAdapter
 └────────────┬────────────────┘
              │  HTTP (REST)
              ▼
@@ -80,8 +80,8 @@ The `KybWorkflowSaga` is declared with `@Saga(name = "kyb-workflow", layerConcur
 | Module | Purpose |
 |--------|---------|
 | `domain-customer-kyc-kyb-interfaces` | Public request/response DTOs shared between the web layer and any consumer of the service's own SDK: `CreateKybCaseRequest`, `SubmitCorporateDocumentsRequest`, `RegisterUbosRequest`, `KybCaseResponse`, `KybResultResponse`. |
-| `domain-customer-kyc-kyb-core` | All domain logic: CQRS command/query objects, command handlers, query handlers, the `KybWorkflowSaga`, `KybWorkflowConstants`, `KybWorkflowInput`, and the `KycService` interface with its stub implementation. |
-| `domain-customer-kyc-kyb-infra` | Infrastructure adapters: `KycbClientFactory` (creates reactive API client beans for `core-common-kycb-mgmt`), `KycbClientConfigurationProperties`, the `KybVerificationPort` interface, `StubKybVerificationAdapter`, and `KybVerificationResult`. |
+| `domain-customer-kyc-kyb-core` | All domain logic: CQRS command/query objects, command handlers, query handlers, the `KybWorkflowSaga`, `KybWorkflowConstants`, `KybWorkflowInput`, and the `KycService` implementation. |
+| `domain-customer-kyc-kyb-infra` | Infrastructure adapters: `KycbClientFactory` (creates reactive API client beans for `core-common-kycb-mgmt`), `KycbClientConfigurationProperties`, the `KybVerificationPort` interface, `SandboxKybVerificationAdapter`, and `KybVerificationResult`. |
 | `domain-customer-kyc-kyb-web` | Spring Boot application entry point (`CustomerDomainKycKybApplication`), `KybController`, `KycController`, and `application.yaml`. |
 | `domain-customer-kyc-kyb-sdk` | OpenAPI-generated Java client SDK published for other services that need to call this service. Includes `KybApi`, `KycApi`, generated model classes, and a reactive `ApiClient`. |
 
@@ -200,7 +200,7 @@ Handles `GetKybResultQuery`. Calls `KybVerificationApi.getKybVerification(partyI
 
 ### KYB Verification Port
 
-`KybVerificationPort` is a hexagonal-architecture port interface for integrating with external KYB verification providers such as Sumsub, Onfido, or Dow Jones. The only currently active implementation is `StubKybVerificationAdapter`, which simulates a 200 ms network delay and always returns `VERIFIED`. It activates when the property `integration.kyb-verification.provider` is set to `stub` or is absent entirely. A real provider implementation must be registered as a Spring `@Component` implementing the same port interface, with the stub suppressed by setting the property to the provider name.
+`KybVerificationPort` is the port for an external KYB verification provider. The default implementation is `SandboxKybVerificationAdapter`, which returns `VERIFIED` for every case. It activates when `integration.kyb-verification.provider` is `sandbox` or absent. Set the property to another value and register a Spring component that implements the same port to use a different provider.
 
 ---
 
@@ -211,7 +211,7 @@ Handles `GetKybResultQuery`. Calls `KybVerificationApi.getKybVerification(partyI
 | Service | Client | APIs Used |
 |---------|--------|-----------|
 | `core-common-kycb-mgmt` | `KycbClientFactory` wrapping the `core-common-kycb-sdk` `ApiClient` | `ComplianceCasesApi`, `CorporateDocumentsApi`, `UboManagementApi`, `KybVerificationApi`, `KycVerificationApi`, `KycVerificationDocumentsApi`, `VerificationDocumentsApi` |
-| External KYB provider | `KybVerificationPort` (stubbed by default) | Pluggable: Sumsub, Onfido, Dow Jones |
+| External KYB provider | `KybVerificationPort` (sandbox sample by default) | Register another adapter for a live provider |
 | Kafka | Firefly EDA (publisher-type: KAFKA) | Topic `domain-layer` — events emitted by `@StepEvent` on each saga step |
 
 ### Downstream — services that consume this microservice
@@ -308,10 +308,10 @@ To activate the `dev` profile for `DEBUG`-level logging:
 mvn spring-boot:run -pl domain-customer-kyc-kyb-web -Dspring-boot.run.profiles=dev
 ```
 
-To disable the KYB verification stub and use a real provider, set:
+To replace the sandbox KYB verification with another provider, set the property and register an adapter for that name:
 
 ```bash
--Dintegration.kyb-verification.provider=<sumsub|onfido|dow-jones>
+-Dintegration.kyb-verification.provider=<provider-name>
 ```
 
 ---

@@ -23,9 +23,9 @@ import java.util.UUID;
 
 /**
  * Port for external KYB (Know Your Business) verification providers.
- * Implementations may delegate to Sumsub, Onfido, Dow Jones, or a stub.
+ * Implementations may delegate to an external provider.
  *
- * <p>Use {@link StubKybVerificationAdapter} for local development and testing.</p>
+ * <p>Use {@link SandboxKybVerificationAdapter} when no external provider is configured.</p>
  */
 public interface KybVerificationPort {
 
