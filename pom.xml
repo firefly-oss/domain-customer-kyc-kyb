@@ -7,13 +7,13 @@
     <parent>
         <groupId>io.fireflysoftware</groupId>
         <artifactId>firefly-parent</artifactId>
-        <version>26.10.4</version>
+        <version>26.10.5</version>
         <relativePath/>
     </parent>
 
     <artifactId>domain-customer-kyc-kyb</artifactId>
     <name>domain-customer-kyc-kyb</name>
-    <version>26.10.4</version>
+    <version>26.10.5</version>
     <packaging>pom</packaging>
     <modules>
         <module>domain-customer-kyc-kyb-core</module>
