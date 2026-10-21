@@ -1,6 +1,7 @@
 package io.fireflysoftware.domain.kyc.kyb.core.kyc.workflows;
 
 import io.fireflysoftware.domain.kyc.kyb.core.kyc.commands.AttachKycEvidenceCommand;
+import io.fireflysoftware.domain.kyc.kyb.core.kyc.commands.DeleteKycEvidenceCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.fireflyframework.cqrs.command.CommandBus;
@@ -39,18 +40,22 @@ public class AttachKycEvidenceSaga {
     @StepEvent(type = EVENT_KYC_EVIDENCE_ATTACHED)
     public Mono<UUID> uploadDocument(AttachKycEvidenceCommand cmd, ExecutionContext ctx) {
         return commandBus.<UUID>send(cmd)
-                .doOnNext(documentId -> ctx.putVariable(CTX_DOCUMENT_ID, documentId));
+                .doOnNext(documentId -> {
+                    ctx.putVariable(CTX_DOCUMENT_ID, documentId);
+                    ctx.putVariable("partyId", cmd.getPartyId());
+                    ctx.putVariable("caseId", cmd.getCaseId());
+                });
     }
 
     /**
-     * Compensation handler that logs a warning when a KYC document upload cannot
-     * be automatically reversed.
-     *
-     * @param documentId the identifier of the document that was uploaded
-     * @return an empty Mono
+     * Deletes the evidence document the step just stored.
      */
-    public Mono<Void> compensateDeleteDocument(UUID documentId) {
-        log.warn("KYC document {} upload cannot be auto-reversed — logging compensation", documentId);
-        return Mono.empty();
+    public Mono<Void> compensateDeleteDocument(UUID documentId, ExecutionContext ctx) {
+        UUID partyId = ctx.getVariableAs("partyId", UUID.class);
+        UUID caseId = ctx.getVariableAs("caseId", UUID.class);
+        if (documentId == null || partyId == null || caseId == null) {
+            return Mono.empty();
+        }
+        return commandBus.send(new DeleteKycEvidenceCommand(partyId, caseId, documentId));
     }
 }

@@ -1,9 +1,9 @@
 <a href="https://fireflysoftware.io/openplatform/">
 <picture>
-  <source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/firefly-oss/.github/main/profile/assets/banner-narrow-dark.svg">
-  <source media="(max-width: 640px)" srcset="https://raw.githubusercontent.com/firefly-oss/.github/main/profile/assets/banner-narrow-light.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/firefly-oss/.github/main/profile/assets/banner-dark.svg">
-  <img src="https://raw.githubusercontent.com/firefly-oss/.github/main/profile/assets/banner-light.svg" alt="Firefly OpenPlatform - Domain Customer - KYC and KYB" width="100%">
+  <source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/fireflysoftwaresolutions/.github/main/profile/assets/banner-narrow-dark.svg">
+  <source media="(max-width: 640px)" srcset="https://raw.githubusercontent.com/fireflysoftwaresolutions/.github/main/profile/assets/banner-narrow-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/fireflysoftwaresolutions/.github/main/profile/assets/banner-dark.svg">
+  <img src="https://raw.githubusercontent.com/fireflysoftwaresolutions/.github/main/profile/assets/banner-light.svg" alt="Firefly OpenPlatform - Domain Customer - KYC and KYB" width="100%">
 </picture>
 </a>
 
@@ -32,7 +32,7 @@ Developed by the Firefly Software Foundation. [dev@fireflysoftware.io](mailto:de
 
 `domain-customer-kyc-kyb` is the domain service responsible for all compliance due-diligence processes applied to Firefly customers. It handles two distinct compliance tracks: **KYC** (Know Your Customer) for natural persons and **KYB** (Know Your Business) for legal entities. The service exposes a reactive REST API and internally routes commands and queries through the Firefly CQRS framework (`fireflyframework-cqrs`).
 
-The KYB track is the primary, fully implemented flow. It orchestrates a five-step distributed saga — `createKybCase → (submitCorporateDocuments ‖ registerUbos) → requestVerification → evaluateResult` — coordinating calls to the downstream `core-common-kycb-mgmt` service via a generated SDK. Every completed saga step publishes a domain event to Kafka, enabling downstream consumers (such as `exp-onboarding` or `core-lending`) to react to compliance outcomes without coupling directly to this service.
+Beneficial ownership is stored as `beneficialOwnershipDocument`. Opening a KYC or KYB case, and attaching KYC evidence, each have a compensating delete on the core. The KYB track is the primary, fully implemented flow. It orchestrates a five-step distributed saga — `createKybCase → (submitCorporateDocuments ‖ registerUbos) → requestVerification → evaluateResult` — coordinating calls to the downstream `core-common-kycb-mgmt` service via a generated SDK. Every completed saga step publishes a domain event to Kafka, enabling downstream consumers (such as `exp-onboarding` or `core-lending`) to react to compliance outcomes without coupling directly to this service.
 
 The KYC track exposes a full lifecycle API (open, attach evidence, mark docs complete, PEP/adverse-media recording, verify, fail, expire, renew) but its service implementation is a placeholder pending full development. Both tracks share a single Spring Boot application, a common infrastructure layer, and the same `KycbClientFactory` for connecting to the core platform.
 

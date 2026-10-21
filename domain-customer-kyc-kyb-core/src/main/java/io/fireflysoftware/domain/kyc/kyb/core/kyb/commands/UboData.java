@@ -33,7 +33,7 @@ public class UboData {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private String verificationMethod;
-    private String titularidadRealDocument;
+    private String beneficialOwnershipDocument;
 
     /**
      * Optional contact email for the Ultimate Beneficial Owner.

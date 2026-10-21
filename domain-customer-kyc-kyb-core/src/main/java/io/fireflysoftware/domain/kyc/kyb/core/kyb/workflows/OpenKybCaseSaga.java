@@ -1,5 +1,6 @@
 package io.fireflysoftware.domain.kyc.kyb.core.kyb.workflows;
 
+import io.fireflysoftware.domain.kyc.kyb.core.kyb.commands.DeleteKybVerificationCommand;
 import io.fireflysoftware.domain.kyc.kyb.core.kyb.commands.OpenKybCaseCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,18 +40,20 @@ public class OpenKybCaseSaga {
     @StepEvent(type = EVENT_KYB_CASE_OPENED)
     public Mono<UUID> createKybVerification(OpenKybCaseCommand cmd, ExecutionContext ctx) {
         return commandBus.<UUID>send(cmd)
-                .doOnNext(verificationId -> ctx.putVariable(CTX_VERIFICATION_ID, verificationId));
+                .doOnNext(verificationId -> {
+                    ctx.putVariable(CTX_VERIFICATION_ID, verificationId);
+                    ctx.putVariable("partyId", cmd.getPartyId());
+                });
     }
 
     /**
-     * Compensation handler that logs a warning when a KYB verification creation cannot
-     * be automatically reversed.
-     *
-     * @param verificationId the identifier of the verification that was created
-     * @return an empty Mono
+     * Deletes the verification the step just created.
      */
-    public Mono<Void> compensateDeleteKybVerification(UUID verificationId) {
-        log.warn("KYB verification {} creation cannot be auto-reversed — logging compensation", verificationId);
-        return Mono.empty();
+    public Mono<Void> compensateDeleteKybVerification(UUID verificationId, ExecutionContext ctx) {
+        UUID partyId = ctx.getVariableAs("partyId", UUID.class);
+        if (verificationId == null || partyId == null) {
+            return Mono.empty();
+        }
+        return commandBus.send(new DeleteKybVerificationCommand(partyId, verificationId));
     }
 }

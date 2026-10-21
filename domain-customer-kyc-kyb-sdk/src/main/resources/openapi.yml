@@ -593,7 +593,7 @@ components:
           format: date-time
         verificationMethod:
           type: string
-        titularidadRealDocument:
+        beneficialOwnershipDocument:
           type: string
         email:
           type: string
